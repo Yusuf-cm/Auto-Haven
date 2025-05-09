@@ -1,122 +1,210 @@
 import axios from "axios";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { motion } from "framer-motion";
+import { useInView } from "react-intersection-observer";
+import Footer from "./Footer";
 
 const AddCar = () => {
-  // Hooks to store product details
-  const [productName, setProductName] = useState("");
-  const [productDescription, setProductDescription] = useState("");
-  const [productCost, setProductCost] = useState("");
-  const [productPhoto, setProductPhoto] = useState(null);
-
-  // Hooks to manage the state of the application
-  const [loading, setLoading] = useState("");
+  const [formData, setFormData] = useState({
+    productName: "",
+    productDescription: "",
+    productCost: "",
+    productPhoto: null
+  });
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [progress, setProgress] = useState(0);
+  const fileInputRef = useRef(null);
+  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
-  // Function to handle form submission
+  const handleInputChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: files ? files[0] : value
+    }));
+  };
+
   const submit = async (e) => {
-    e.preventDefault(); // Prevent the site from reloading
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setMessage("");
 
-    // Update the loading hook with a message
-    setLoading("Please wait as we upload your product details...");
-
-    // Create a FormData object to hold all the details
     const data = new FormData();
-    data.append("product_name", productName);
-    data.append("product_description", productDescription);
-    data.append("product_cost", productCost);
-    data.append("product_photo", productPhoto);
+    data.append("product_name", formData.productName);
+    data.append("product_description", formData.productDescription);
+    data.append("product_cost", formData.productCost);
+    data.append("product_photo", formData.productPhoto);
 
     try {
-      // Send the data to the backend API
-      const response = await axios.post("https://yusuf098.pythonanywhere.com/api/addproduct", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      await axios.post("https://yusuf098.pythonanywhere.com/api/addproduct", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setProgress(percentCompleted);
+        }
       });
 
-      // Reset loading and update the message hook
-      setLoading("");
       setMessage("Product Added Successfully!");
-
-      // Set a timeout to clear the message after 8 seconds
-      const timeout = setTimeout(() => {
-        setMessage("");
-      }, 8000);
-
-      // Clear the form fields
-      setProductName("");
-      setProductDescription("");
-      setProductCost("");
-      setProductPhoto(null);
-
-      // Cleanup timeout if the component unmounts
-      return () => clearTimeout(timeout);
+      setFormData({
+        productName: "",
+        productDescription: "",
+        productCost: "",
+        productPhoto: null
+      });
+      fileInputRef.current.value = "";
+      
+      setTimeout(() => setMessage(""), 8000);
     } catch (error) {
-      setLoading("");
-      setError("Failed to add the product. Please try again...");
+      setError(error.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
+      setProgress(0);
     }
   };
 
   return (
-    <div className="row justify-content-center mt-4">
-      <div className="col-md-6 card shadow p-4">
-        <form onSubmit={submit}>
-          <h2 className="text-center mb-4">Add a New Product</h2>
-
-          {/* Display loading, message, or error */}
-          {loading && <div className="alert alert-info">{loading}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
-          {error && <div className="alert alert-danger">{error}</div>}
-
-          {/* Product Name Input */}
-          <input
-            type="text"
-            placeholder="Enter product name"
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            className="form-control mb-3"
-            required
-          />
-
-          {/* Product Description Input */}
-          <textarea
-            placeholder="Enter product description"
-            value={productDescription}
-            onChange={(e) => setProductDescription(e.target.value)}
-            className="form-control mb-3"
-            rows="3"
-            required
-          />
-
-          {/* Product Cost Input */}
-          <input
-            type="number"
-            placeholder="Enter product price"
-            value={productCost}
-            onChange={(e) => setProductCost(e.target.value)}
-            className="form-control mb-3"
-            required
-          />
-
-          {/* Product Photo Upload */}
-          <label className="form-label">Upload Product Photo</label>
-          <input
-            type="file"
-            className="form-control mb-4"
-            accept="image/*"
-            onChange={(e) => setProductPhoto(e.target.files[0])}
-            required
-          />
-
-          {/* Submit Button */}
-          <button type="submit" className="btn btn-danger w-100">
-            Add Product
-          </button>
-        </form>
-      </div>
+    <div className="d-flex flex-column min-vh-100">
+      <motion.div
+        ref={ref}
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: inView ? 1 : 0, y: inView ? 0 : 50 }}
+        className="flex-grow-1 d-flex align-items-center"
+      >
+        <div className="container">
+          <div className="row justify-content-center">
+            <motion.div
+              className="col-md-8 col-lg-6"
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="glass-card p-4 p-lg-5 rounded-4 shadow-lg">
+                <motion.h2
+                  className="text-center gradient-text mb-4"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                >
+                  List New Vehicle
+                </motion.h2>
+  
+                {loading && (
+                  <div className="progress-container mb-4">
+                    <div 
+                      className="progress-bar-gradient" 
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                )}
+  
+                {message && (
+                  <motion.div
+                    className="alert-glass success mb-4"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                  >
+                    <i className="fas fa-check-circle me-2"></i>
+                    {message}
+                  </motion.div>
+                )}
+  
+                {error && (
+                  <motion.div
+                    className="alert-glass error mb-4"
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                  >
+                    <i className="fas fa-exclamation-circle me-2"></i>
+                    {error}
+                  </motion.div>
+                )}
+  
+                <form onSubmit={submit}>
+                  {[
+                    { name: "productName", type: "text", label: "Vehicle Name" },
+                    { name: "productDescription", type: "textarea", label: "Description" },
+                    { name: "productCost", type: "number", label: "Price" },
+                    { name: "productPhoto", type: "file", label: "Upload Photos" }
+                  ].map((field, index) => (
+                    <motion.div
+                      key={field.name}
+                      className="mb-4"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {field.type === "textarea" ? (
+                        <motion.textarea
+                          whileFocus={{ scale: 1.02 }}
+                          name={field.name}
+                          className="form-control-glass"
+                          placeholder={`Enter ${field.label}`}
+                          value={formData[field.name]}
+                          onChange={handleInputChange}
+                          rows="4"
+                          required
+                        />
+                      ) : field.type === "file" ? (
+                        <motion.div
+                          className="file-upload-wrapper"
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <input
+                            type="file"
+                            name={field.name}
+                            className="form-control-glass"
+                            onChange={handleInputChange}
+                            accept="image/*"
+                            ref={fileInputRef}
+                            required
+                          />
+                          <div className="upload-hint mt-1">
+                            <i className="fas fa-cloud-upload-alt me-2"></i>
+                          </div>
+                        </motion.div>
+                      ) : (
+                        <motion.input
+                          whileFocus={{ scale: 1.02 }}
+                          type={field.type}
+                          name={field.name}
+                          className="form-control-glass"
+                          placeholder={`Enter ${field.label}`}
+                          value={formData[field.name]}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      )}
+                    </motion.div>
+                  ))}
+  
+                  <motion.button
+                    type="submit"
+                    className="btn btn-gradient w-100 py-3"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <i className="fas fa-spinner fa-spin me-2"></i>
+                        Uploading...
+                      </>
+                    ) : (
+                      "List Vehicle"
+                    )}
+                  </motion.button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+  
+      <Footer />
     </div>
-  );
+  );  
 };
 
 export default AddCar;

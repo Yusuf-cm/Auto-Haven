@@ -1,64 +1,125 @@
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.bundle.min';
 import GetCars from './components/GetCars';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Signup from './components/Signup';
 import Signin from './components/Signin';
 import AddCar from './components/AddCars';
-import Mpesapayment from './components/Mpesapayment';
+import PaymentPage from './components/PaymentPage';
 import Aboutus from './components/Aboutus';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
+import Notfound from './components/Notfound';
+import Chat from './components/Chat';
+import DeleteCars from './components/DeleteCars';
+
+
+
+function AppContent() {
+  const location = useLocation();
+
+  return (
+    <div className="App">
+      {/* Enhanced Header */}
+      <motion.header 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="hero-header position-relative overflow-hidden"
+      >
+        <div className="hero-overlay position-absolute w-100 h-100"></div>
+        <div className="container position-relative py-5">
+          <motion.h1 
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="display-3 fw-bold text-white mb-3"
+          >
+            Auto Haven
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="hero-subtitle lead fs-4 text-light mb-0"
+          >
+            Experience Automotive Excellence
+          </motion.p>
+        </div>
+      </motion.header>
+
+      {/* Modern Navigation */}
+      <nav className="navbar navbar-expand-lg navbar-dark fixed-top bg-dark">
+        <div className="container">
+          <motion.div whileHover={{ scale: 1.05 }}>
+            <Link to="/" className="navbar-brand fw-bold fs-3">
+              <span className="gradient-text">Auto Haven</span>
+            </Link>
+          </motion.div>
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarNav">
+            <ul className="navbar-nav me-auto">
+              <li className="nav-item">
+                <Link to="/" className="nav-link hover-underline">Browse Collection</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/deletecar" className="nav-link hover-underline">Delete Your Vehicle</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/addcar" className="nav-link hover-underline">Sell Your Vehicle</Link>
+              </li>
+            </ul>
+            <ul className="navbar-nav">
+              <li className="nav-item">
+                <Link to="/signup" className="nav-link btn-hover-effect">Join Us</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/signin" className="nav-link btn-hover-effect">Member Access</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/chat" className="nav-link hover-underline">Chat with Us</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/aboutus" className="nav-link hover-underline">Our Legacy</Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+  
+
+      {/* Animated Routes */}
+   < main> <AnimatePresence mode='wait'>
+        <Routes location={location} key={location.pathname}>
+          <Route path='/signup' element={<Signup />} />
+          <Route path='/signin' element={<Signin />} />
+          <Route path='/addcar' element={<AddCar />} />
+          <Route path='/deletecar' element={<DeleteCars />} />
+          <Route path='/' element={<GetCars />} />
+          <Route path='/paymentpage' element={<PaymentPage />} />
+          <Route path='/aboutus' element={<Aboutus />} />
+          <Route path='/chat' element={<Chat/>}/>
+          <Route path='/*' element={<Notfound/>}/>
+        </Routes>
+      </AnimatePresence>
+      </main>
+     
+
+        {/* Footer
+        <footer className="gradient-footer py-5 mt-5">
+        <div className="container ,text-center">
+              <h5 className="text-light mb-4">Auto Haven</h5>
+              <p className="text-light opacity-75">Redefining automotive excellence since 2023</p>
+        </div>
+      </footer> */}
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
-      <div className="App text-center">
-        <header className="App-header">
-          <h1 className="display-4 text-light mb-4">Auto Haven</h1>
-          <p className="lead text-light">Your Ultimate Destination for Luxury Cars</p>
-        </header>
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-          <div className="container-fluid">
-            <Link to="/" className="navbar-brand">Auto Haven</Link>
-            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span className="navbar-toggler-icon"></span>
-            </button>
-            <div className="collapse navbar-collapse" id="navbarNav">
-              <ul className="navbar-nav me-auto">
-                <li className="nav-item">
-                  <Link to="/" className="nav-link">Browse Cars</Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/addcar" className="nav-link">Sell Your Car</Link>
-                </li>
-              </ul>
-              <ul className="navbar-nav">
-                <li className="nav-item">
-                  <Link to="/signup" className="nav-link">Sign Up</Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/signin" className="nav-link">Sign In</Link>
-                </li>
-                <li className="nav-item">
-                  <Link to="/aboutus" className="nav-link">About Us</Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </div>
-      <Routes>
-        {/* Authentication routes */}
-        <Route path='/signup' element={<Signup />} />
-        <Route path='/signin' element={<Signin />} />
-
-        {/* Car management routes */}
-        <Route path='/addcar' element={<AddCar />} />
-        <Route path='/' element={<GetCars />} /> {/* Homepage route for displaying the list of cars */}
-
-        {/* Payment routes */}
-        <Route path='/mpesapayment' element={<Mpesapayment />} />
-        <Route path='/aboutus' element={<Aboutus />} />
-      </Routes>
+      <AppContent />
     </Router>
   );
 }
